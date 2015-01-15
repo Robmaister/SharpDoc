@@ -43,23 +43,32 @@ function autoResize(id) {
     }
 }
 
-function loadContent(rootTopic, extension) {
-    var data = window.location.search;
+function loadContent(rootTopic, extension, initial) {
+    var data = window.location.hash.substr(1).split('/');
     var url = rootTopic + extension;
     var topicToHighlight = rootTopic;
-
-    if(data != null && data !="")
+	
+    if(initial && data != null && data != "")
     {
-        var page = $get("page", data);
+		// Anything after the first / in the hash is a page anchor e.g. index.htm#MyPage/Section1
+		// TODO implement page anchors in markdown/class library?
+        var page = data[0];
         if(page != "")
         {
             url = page + extension;
             topicToHighlight = page;
         }
+		
+		// Set the iframe URL to include the page anchor if one exists
+		if (data.length > 1)
+			url += "#" + data[1];
     }
-    
-    $("mainFrame").setAttribute("src", url);
-    hightLightTopic(topicToHighlight);
+	
+	// change hash (updates history) and set iframe URL without affecting history
+	location.hash = topicToHighlight;
+	window.frames["mainFrame"].location.replace(url);
+	
+    highlightTopic(topicToHighlight);
 }
 
 /*
@@ -276,7 +285,7 @@ function toggleToc(nodeId) {
 
 }
 
-function hightLightTopic(topicId) {
+function highlightTopic(topicId) {
     //alert("highlight");
     var oldHighlight = $$_('.highlight');
     oldHighlight.each(function (old, oldId) {
